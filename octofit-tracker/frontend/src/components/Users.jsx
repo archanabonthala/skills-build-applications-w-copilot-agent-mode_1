@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
-import { fetchRecords } from '../api.js'
+import { apiBaseUrl, getRecords } from '../api.js'
 import { ResourceState } from './ResourceState.jsx'
 
 export default function Users() {
-  const endpoint = '/api/users/'
   const [users, setUsers] = useState([])
   const [state, setState] = useState({ loading: true, error: '' })
 
   useEffect(() => {
-    fetchRecords(endpoint).then((data) => {
-      setUsers(data)
+    fetch(`${apiBaseUrl}/api/users/`).then((response) => {
+      if (!response.ok) throw new Error('Unable to load users')
+      return response.json()
+    }).then((payload) => {
+      setUsers(getRecords(payload))
       setState({ loading: false, error: '' })
     }).catch((error) => setState({ loading: false, error: error.message }))
   }, [])

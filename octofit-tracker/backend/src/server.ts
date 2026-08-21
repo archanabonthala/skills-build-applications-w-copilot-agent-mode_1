@@ -2,6 +2,7 @@ import cors from 'cors'
 import 'dotenv/config'
 import express from 'express'
 import { apiBaseUrl } from './config/api.js'
+import { connectDatabase } from './config/database.js'
 import activitiesRouter from './routes/activities.js'
 import leaderboardRouter from './routes/leaderboard.js'
 import teamsRouter from './routes/teams.js'
@@ -24,6 +25,13 @@ app.get('/api/health', (_request, response) => {
   response.json({ status: 'ok', service: 'octofit-tracker-api', apiBaseUrl })
 })
 
-app.listen(port, () => {
-  console.log(`OctoFit Tracker API listening at ${apiBaseUrl}`)
-})
+connectDatabase()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`OctoFit Tracker API listening at ${apiBaseUrl}`)
+    })
+  })
+  .catch((error) => {
+    console.error('Unable to start API because MongoDB is unavailable:', error)
+    process.exit(1)
+  })

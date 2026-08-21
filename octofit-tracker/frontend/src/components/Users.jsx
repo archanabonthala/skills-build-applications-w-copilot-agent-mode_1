@@ -3,11 +3,12 @@ import { fetchRecords } from '../api.js'
 import { ResourceState } from './ResourceState.jsx'
 
 export default function Users() {
+  const endpoint = '/api/users/'
   const [users, setUsers] = useState([])
   const [state, setState] = useState({ loading: true, error: '' })
 
   useEffect(() => {
-    fetchRecords('users').then((data) => {
+    fetchRecords(endpoint).then((data) => {
       setUsers(data)
       setState({ loading: false, error: '' })
     }).catch((error) => setState({ loading: false, error: error.message }))

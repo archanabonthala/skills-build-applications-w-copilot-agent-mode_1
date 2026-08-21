@@ -17,8 +17,8 @@ export function formatDate(value) {
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value))
 }
 
-export async function fetchRecords(resource) {
-  const response = await fetch(`${apiBaseUrl}/api/${resource}/`)
-  if (!response.ok) throw new Error(`Unable to load ${resource}`)
+export async function fetchRecords(endpoint) {
+  const response = await fetch(`${apiBaseUrl}${endpoint}`)
+  if (!response.ok) throw new Error(`Unable to load ${endpoint}`)
   return getRecords(await response.json())
 }

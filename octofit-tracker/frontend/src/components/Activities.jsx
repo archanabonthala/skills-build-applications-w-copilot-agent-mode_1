@@ -1,10 +1,58 @@
-import { useEffect, useState } from 'react'
-import { apiBaseUrl, formatDate, getRecords } from '../api.js'
-import { ResourceState } from './ResourceState.jsx'
+import { useState, useEffect } from 'react'
+import '../styles/ComponentStyle.css'
 
-export default function Activities() {
+const Activities = () => {
   const [activities, setActivities] = useState([])
-  const [state, setState] = useState({ loading: true, error: '' })
-  useEffect(() => { fetch(`${apiBaseUrl}/api/activities/`).then((response) => { if (!response.ok) throw new Error('Unable to load activities'); return response.json() }).then((payload) => { setActivities(getRecords(payload)); setState({ loading: false, error: '' }) }).catch((error) => setState({ loading: false, error: error.message })) }, [])
-  return <section className="page-section"><div className="section-heading"><div><p className="eyebrow">Movement log</p><h1>Activities</h1></div></div><ResourceState {...state} empty={!activities.length}><div className="table-wrap"><table><thead><tr><th>Activity</th><th>Duration</th><th>Calories</th><th>Completed</th></tr></thead><tbody>{activities.map((activity) => <tr key={activity._id}><td><strong>{activity.type}</strong></td><td>{activity.durationMinutes} min</td><td>{activity.calories} kcal</td><td>{formatDate(activity.completedAt)}</td></tr>)}</tbody></table></div></ResourceState></section>
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const codespaceName = import.meta.env.VITE_CODESPACE_NAME
+        if (!codespaceName) {
+          throw new Error('VITE_CODESPACE_NAME environment variable is not set')
+        }
+        const url = `https://${codespaceName}-8000.app.github.dev/api/activities/`
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setActivities(Array.isArray(data) ? data : data.results || [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchActivities()
+  }, [])
+
+  if (loading) return <div className="loading">Loading activities...</div>
+  if (error) return <div className="error">Error: {error}</div>
+
+  return (
+    <div className="component-container">
+      <h1>Activities</h1>
+      <div className="data-grid">
+        {activities.length > 0 ? (
+          activities.map((activity) => (
+            <div key={activity.id} className="data-card">
+              <h3>{activity.name}</h3>
+              <p><strong>Type:</strong> {activity.type}</p>
+              <p><strong>Duration:</strong> {activity.duration} minutes</p>
+              <p><strong>Calories:</strong> {activity.calories}</p>
+              <p><strong>Date:</strong> {new Date(activity.date).toLocaleDateString()}</p>
+            </div>
+          ))
+        ) : (
+          <p>No activities found</p>
+        )}
+      </div>
+    </div>
+  )
 }
+
+export default Activities

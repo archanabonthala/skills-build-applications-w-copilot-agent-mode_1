@@ -1,10 +1,58 @@
-import { useEffect, useState } from 'react'
-import { apiBaseUrl, getRecords } from '../api.js'
-import { ResourceState } from './ResourceState.jsx'
+import { useState, useEffect } from 'react'
+import '../styles/ComponentStyle.css'
 
-export default function Workouts() {
+const Workouts = () => {
   const [workouts, setWorkouts] = useState([])
-  const [state, setState] = useState({ loading: true, error: '' })
-  useEffect(() => { fetch(`${apiBaseUrl}/api/workouts/`).then((response) => { if (!response.ok) throw new Error('Unable to load workouts'); return response.json() }).then((payload) => { setWorkouts(getRecords(payload)); setState({ loading: false, error: '' }) }).catch((error) => setState({ loading: false, error: error.message })) }, [])
-  return <section className="page-section"><div className="section-heading"><div><p className="eyebrow">Train with intent</p><h1>Workouts</h1></div></div><ResourceState {...state} empty={!workouts.length}><div className="card-grid">{workouts.map((workout) => <article className="data-card workout-card" key={workout._id}><div className="workout-meta"><span>{workout.difficulty}</span><span>{workout.durationMinutes} min</span></div><h2>{workout.title}</h2><p>{workout.focus}</p><ul>{workout.exercises?.map((exercise) => <li key={exercise}>{exercise}</li>)}</ul></article>)}</div></ResourceState></section>
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      try {
+        const codespaceName = import.meta.env.VITE_CODESPACE_NAME
+        if (!codespaceName) {
+          throw new Error('VITE_CODESPACE_NAME environment variable is not set')
+        }
+        const url = `https://${codespaceName}-8000.app.github.dev/api/workouts/`
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setWorkouts(Array.isArray(data) ? data : data.results || [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchWorkouts()
+  }, [])
+
+  if (loading) return <div className="loading">Loading workouts...</div>
+  if (error) return <div className="error">Error: {error}</div>
+
+  return (
+    <div className="component-container">
+      <h1>Workouts</h1>
+      <div className="data-grid">
+        {workouts.length > 0 ? (
+          workouts.map((workout) => (
+            <div key={workout.id} className="data-card">
+              <h3>{workout.name}</h3>
+              <p><strong>Type:</strong> {workout.type}</p>
+              <p><strong>Duration:</strong> {workout.duration} minutes</p>
+              <p><strong>Intensity:</strong> {workout.intensity}</p>
+              <p><strong>Date:</strong> {new Date(workout.date).toLocaleDateString()}</p>
+            </div>
+          ))
+        ) : (
+          <p>No workouts found</p>
+        )}
+      </div>
+    </div>
+  )
 }
+
+export default Workouts

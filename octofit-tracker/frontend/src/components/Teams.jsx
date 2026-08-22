@@ -1,10 +1,57 @@
-import { useEffect, useState } from 'react'
-import { apiBaseUrl, getRecords } from '../api.js'
-import { ResourceState } from './ResourceState.jsx'
+import { useState, useEffect } from 'react'
+import '../styles/ComponentStyle.css'
 
-export default function Teams() {
+const Teams = () => {
   const [teams, setTeams] = useState([])
-  const [state, setState] = useState({ loading: true, error: '' })
-  useEffect(() => { fetch(`${apiBaseUrl}/api/teams/`).then((response) => { if (!response.ok) throw new Error('Unable to load teams'); return response.json() }).then((payload) => { setTeams(getRecords(payload)); setState({ loading: false, error: '' }) }).catch((error) => setState({ loading: false, error: error.message })) }, [])
-  return <section className="page-section"><div className="section-heading"><div><p className="eyebrow">Find your people</p><h1>Teams</h1></div></div><ResourceState {...state} empty={!teams.length}><div className="card-grid">{teams.map((team) => <article className="data-card team-card" key={team._id || team.name}><span className="team-swatch" style={{ backgroundColor: team.color || '#176b87' }} /><h2>{team.name}</h2><p>{team.motto}</p><footer>{team.members?.length || 0} members</footer></article>)}</div></ResourceState></section>
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const codespaceName = import.meta.env.VITE_CODESPACE_NAME
+        if (!codespaceName) {
+          throw new Error('VITE_CODESPACE_NAME environment variable is not set')
+        }
+        const url = `https://${codespaceName}-8000.app.github.dev/api/teams/`
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        setTeams(Array.isArray(data) ? data : data.results || [])
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTeams()
+  }, [])
+
+  if (loading) return <div className="loading">Loading teams...</div>
+  if (error) return <div className="error">Error: {error}</div>
+
+  return (
+    <div className="component-container">
+      <h1>Teams</h1>
+      <div className="data-grid">
+        {teams.length > 0 ? (
+          teams.map((team) => (
+            <div key={team.id} className="data-card">
+              <h3>{team.name}</h3>
+              <p><strong>Members:</strong> {team.member_count}</p>
+              <p><strong>Points:</strong> {team.points}</p>
+              <p><strong>Description:</strong> {team.description}</p>
+            </div>
+          ))
+        ) : (
+          <p>No teams found</p>
+        )}
+      </div>
+    </div>
+  )
 }
+
+export default Teams

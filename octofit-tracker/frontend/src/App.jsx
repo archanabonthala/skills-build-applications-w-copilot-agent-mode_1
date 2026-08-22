@@ -1,33 +1,56 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import { apiBaseUrl } from './api.js'
-import Activities from './components/Activities.jsx'
-import Leaderboard from './components/Leaderboard.jsx'
-import Teams from './components/Teams.jsx'
-import Users from './components/Users.jsx'
-import Workouts from './components/Workouts.jsx'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import Activities from './components/Activities'
+import Leaderboard from './components/Leaderboard'
+import Teams from './components/Teams'
+import Users from './components/Users'
+import Workouts from './components/Workouts'
 import './App.css'
 
-const navigation = [
-  { to: '/activities', label: 'Activities', detail: 'Your movement' },
-  { to: '/leaderboard', label: 'Leaderboard', detail: 'Weekly standings' },
-  { to: '/teams', label: 'Teams', detail: 'Train together' },
-  { to: '/users', label: 'Members', detail: 'Your community' },
-  { to: '/workouts', label: 'Workouts', detail: 'Suggested sessions' },
-]
-
 function App() {
-  return <div className="app-shell">
-    <aside className="sidebar">
-      <NavLink className="brand" to="/activities"><img src="/octofitapp-small.png" alt="" /><span>OctoFit<small>TRACKER</small></span></NavLink>
-      <div className="sidebar-intro"><span className="live-dot" /> Live workspace</div>
-      <nav aria-label="Primary navigation">{navigation.map((item) => <NavLink className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'} to={item.to} key={item.to}><span>{item.label}</span><small>{item.detail}</small></NavLink>)}</nav>
-      <div className="sidebar-footer"><span>API connected</span><code>{apiBaseUrl.replace(/^https?:\/\//, '')}</code></div>
-    </aside>
-    <main className="main-content">
-      <header className="topbar"><span className="topbar-kicker">A better week starts here</span><span className="date-stamp">OCTOFIT / 2026</span></header>
-      <Routes><Route path="/" element={<Navigate to="/activities" replace />} /><Route path="/activities" element={<Activities />} /><Route path="/leaderboard" element={<Leaderboard />} /><Route path="/teams" element={<Teams />} /><Route path="/users" element={<Users />} /><Route path="/workouts" element={<Workouts />} /></Routes>
-    </main>
-  </div>
+  return (
+    <Router>
+      <div className="app">
+        <nav className="navbar">
+          <div className="nav-container">
+            <Link to="/" className="nav-logo">OctoFit Tracker</Link>
+            <ul className="nav-menu">
+              <li className="nav-item">
+                <Link to="/activities" className="nav-link">Activities</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/teams" className="nav-link">Teams</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/users" className="nav-link">Users</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/workouts" className="nav-link">Workouts</Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <main className="main-content">
+          <Routes>
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/workouts" element={<Workouts />} />
+            <Route path="/" element={
+              <div className="home">
+                <h1>Welcome to OctoFit Tracker</h1>
+                <p>Track your fitness activities and compete with your team!</p>
+              </div>
+            } />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  )
 }
 
 export default App
